@@ -1,3 +1,5 @@
+#02220133-PART2
+
 class Node:
     def __init__(self, value, color="red"):
         self.value = value
@@ -34,30 +36,22 @@ class RedBlackTree:
         else:
             parent.right = node
 
-        node.color = "red"
+        if node.parent == self.TNULL:
+            node.color = "black"
+            return
+
+        if node.parent.parent == self.TNULL:
+            return
+
         self._fix_insert(node)
 
     def _fix_insert(self, k):
         while k.parent.color == "red":
-            if k.parent == k.parent.parent.left:
-                u = k.parent.parent.right
-                if u.color == "red":
-                    k.parent.color = "black"
-                    u.color = "black"
-                    k.parent.parent.color = "red"
-                    k = k.parent.parent
-                else:
-                    if k == k.parent.right:
-                        k = k.parent
-                        self._left_rotate(k)
-                    k.parent.color = "black"
-                    k.parent.parent.color = "red"
-                    self._right_rotate(k.parent.parent)
-            else:
+            if k.parent == k.parent.parent.right:
                 u = k.parent.parent.left
                 if u.color == "red":
-                    k.parent.color = "black"
                     u.color = "black"
+                    k.parent.color = "black"
                     k.parent.parent.color = "red"
                     k = k.parent.parent
                 else:
@@ -67,6 +61,22 @@ class RedBlackTree:
                     k.parent.color = "black"
                     k.parent.parent.color = "red"
                     self._left_rotate(k.parent.parent)
+            else:
+                u = k.parent.parent.right
+                if u.color == "red":
+                    u.color = "black"
+                    k.parent.color = "black"
+                    k.parent.parent.color = "red"
+                    k = k.parent.parent
+                else:
+                    if k == k.parent.right:
+                        k = k.parent
+                        self._left_rotate(k)
+                    k.parent.color = "black"
+                    k.parent.parent.color = "red"
+                    self._right_rotate(k.parent.parent)
+            if k == self.root:
+                break
         self.root.color = "black"
 
     def _left_rotate(self, x):
@@ -110,15 +120,14 @@ class RedBlackTree:
                 node = node.right
         return False
 
-    def get_black_height(self, node=None):
-        if node is None:
-            node = self.root
-        height = -1
+    def get_black_height(self):
+        node = self.root
+        height = 0
         while node != self.TNULL:
             if node.color == "black":
                 height += 1
             node = node.left
-        return height + 1  # count the black NIL leaf
+        return height
 
     def _minimum(self, node):
         while node.left != self.TNULL:
@@ -217,33 +226,42 @@ class RedBlackTree:
         x.color = "black"
 
     def print_tree(self):
-        def format_node(node):
-            if node == self.TNULL:
-                return "NIL"
-            return f"{node.value} ({'Black' if node.color == 'black' else 'Red'})"
-
-        if self.root == self.TNULL:
+        def _print_helper(node, indent, last):
+            if node != self.TNULL:
+                print(indent, end="")
+                if last:
+                    print("R----", end="")
+                    indent += "     "
+                else:
+                    print("L----", end="")
+                    indent += "|    "
+                print(f"{node.value}({'B' if node.color == 'black' else 'R'})")
+                _print_helper(node.left, indent, False)
+                _print_helper(node.right, indent, True)
+        
+        if self.root != self.TNULL:
+            _print_helper(self.root, "", True)
+        else:
             print("Empty tree")
-            return
-
-        print(f"  {format_node(self.root)}")
-        if self.root.left != self.TNULL or self.root.right != self.TNULL:
-            print("     /     \\")
-            left = format_node(self.root.left)
-            right = format_node(self.root.right)
-            print(f"  {left}   {right}")
-
 
 # Example usage:
 rb = RedBlackTree()
-rb.insert(21)
-rb.insert(3)
-rb.insert(32)
+rb.insert(55)
+rb.insert(40)
+rb.insert(65)
+rb.insert(60)
+rb.insert(75)
+rb.insert(57)
 
+print("Initial tree:")
 rb.print_tree()
 print("Black Height:", rb.get_black_height())
 
-# Optional: Try deletion
-rb.delete(3)
+print("\nAfter deleting 40:")
+rb.delete(40)
 rb.print_tree()
-print("Black Height after deletion:", rb.get_black_height())
+print("Black Height:", rb.get_black_height())
+
+print("\nSearch for 60:", rb.search(60))
+print("Search for 40:", rb.search(40))
+  
